@@ -66,7 +66,7 @@ class BeatmapFilter:
         return self.field + ' ' + self.operator + ' ' + str(self.value)
 
 def writeCollectionDB(collections):
-    out = open('data/new_collections.db', 'wb')
+    out = open('data/collection.db', 'wb')
     out.write(pack('I', int(collections['version'])))
     out.write(pack('I', len(collections['collections'])))
 
@@ -128,7 +128,7 @@ if __name__ == '__main__':
     # writeCollectionDB(c)
 
     osuDb = open('data/osu!.db')
-    collectionsDb = open('data/new_collections.db')
+    collectionsDb = open('data/collection.db')
 
     collections = dbparse.parseCollectionsDb(collectionsDb.read())
     beatmaps = dbparse.parseOsuDb(osuDb.read())
