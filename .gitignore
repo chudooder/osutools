@@ -1,3 +1,4 @@
 apikey
 data/*.json
+data/*.csv
 *.pyc
