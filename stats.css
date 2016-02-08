@@ -1,0 +1,31 @@
+body {
+  font: 11px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+}
+
+.dot {
+  stroke: #FFF;
+}
+
+.tooltip {
+  position: absolute;
+  width: 250px;
+  height: 42px;
+  pointer-events: none;
+  background-color: white;
+}
+
+body {
+  font: 10px sans-serif;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
