@@ -37,6 +37,8 @@ class BeatmapFilter:
 
         if valtype == 'float':
             bmval = float(bmval)
+        elif valtype == 'string':
+            bmval = bmval.upper()
 
         if self.operator == '=' or self.operator == '==':
             return bmval == self.value
@@ -110,6 +112,7 @@ def acceptInput(collections, bmJson):
             res = raw_input('Save? Y/N: ')
             if res.upper() == 'Y':
                 writeCollectionDB(collections, COLLECTIONS_FP)
+                done = True
             elif res.upper() == 'N':
                 done = True
 
@@ -154,7 +157,7 @@ def addCollection(cmd, collections, beatmaps):
             continue
 
         valtype = FILTER_MAP[field]['type']
-        val = sp[2]
+        val = sp[2].upper()
         if valtype == 'float':
             try:
                 val = float(sp[2])
