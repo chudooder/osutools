@@ -1,8 +1,10 @@
 import json
 import dbparse
 from struct import pack
+import sys
 
 FILTER_MAP = json.load(open('filters.json'))
+COLLECTIONS_FP = None
 
 def getULEBString(string):
     uleb = pack('b', 0x0b)
@@ -56,7 +58,7 @@ class BeatmapFilter:
     def toString(self):
         return self.field + ' ' + self.operator + ' ' + str(self.value)
 
-def writeCollectionDB(collections):
+def writeCollectionDB(collections, fp):
     out = open('data/collection.db', 'wb')
     out.write(pack('I', int(collections['version'])))
     out.write(pack('I', len(collections['collections'])))
@@ -91,21 +93,37 @@ def acceptInput(collections, bmJson):
         if cmd == 'add':
             addCollection(cmd, collections, beatmaps)
 
-        if cmd.startswith('remove'):
+        elif cmd.startswith('remove'):
             removeCollection(cmd, collections, beatmaps)
 
         elif cmd.startswith('list'):
             listCollection(cmd, collections, beatmaps)
 
         elif cmd.startswith('save'):
-            writeCollectionDB(collections)
+            spl = cmd.split(' ')
+            if len(spl) > 1:
+                writeCollectionDB(collections, spl[1])
+            else:
+                writeCollectionDB(collections, COLLECTIONS_FP)
 
         elif cmd.startswith('quit'):
             res = raw_input('Save? Y/N: ')
             if res.upper() == 'Y':
-                writeCollectionDB(collections)
+                writeCollectionDB(collections, COLLECTIONS_FP)
             elif res.upper() == 'N':
                 done = True
+
+        elif cmd.startswith('help'):
+            print '***'
+            print 'Available commands:'
+            print '   add'
+            print '   remove <index>'
+            print '   list <index>'
+            print '   save [fp]'
+            print '   quit'
+
+        else:
+            print 'Unrecognized command. Type \'help\' for more information.'
 
             
 def addCollection(cmd, collections, beatmaps):
@@ -196,10 +214,46 @@ if __name__ == '__main__':
     # c = {'version': '20151212', 'collections': {}}
     # writeCollectionDB(c)
 
-    osuDb = open('data/osu!.db', 'rb')
-    collectionsDb = open('data/collection.db', 'rb')
+    osuDBfp = 'osu!.db'
+    collectionDBfp = 'collection.db'
+    scoresDBfp = 'scores.db'
+
+    if len(sys.argv) > 1:
+        osuDBfp = sys.argv[1]
+
+    if len(sys.argv) > 2:
+        collectionDBfp = sys.argv[2]
+
+    if len(sys.argv) > 3:
+        scoresDBfp = sys.argv[3]
+
+    COLLECTIONS_FP = collectionDBfp
+
+    osuDb = open(osuDBfp, 'rb')
+    collectionsDb = open(collectionDBfp, 'rb')
+    scoresDb = open(scoresDBfp, 'rb')
 
     collections = dbparse.parseCollectionsDb(collectionsDb.read())
     beatmaps = dbparse.parseOsuDb(osuDb.read())
+    scores = dbparse.parseScoresDb(scoresDb.read())
+
+    # transform scores to be slightly easier to work with
+    scores = {bm['file_md5']: bm for bm in scores['beatmaps']}
+
+    # add some extra fields to the beatmaps dictionary
+    for md5 in beatmaps['beatmaps']:
+        if md5 not in scores:
+            beatmaps['beatmaps'][md5]['top_rank'] = 'F'
+            beatmaps['beatmaps'][md5]['top_combo'] = 0
+            beatmaps['beatmaps'][md5]['top_accuracy'] = 0
+            beatmaps['beatmaps'][md5]['passes'] = 0
+            continue
+
+        sortedScores = sorted(scores[md5]['scores'], key=lambda s:-s['score'])
+        bestScore = sortedScores[0]
+        beatmaps['beatmaps'][md5]['top_rank'] = bestScore['grade']
+        beatmaps['beatmaps'][md5]['top_combo'] = bestScore['max_combo']
+        beatmaps['beatmaps'][md5]['top_accuracy'] = bestScore['accuracy']
+        beatmaps['beatmaps'][md5]['passes'] = len(sortedScores)
 
     acceptInput(collections, beatmaps)

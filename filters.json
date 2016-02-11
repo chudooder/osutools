@@ -20,5 +20,9 @@
     "TITLE": {"key": "song_title", "type": "string"},
     "DIFFNAME": {"key": "version", "type": "string"},
     "CREATOR": {"key": "creator_name", "type": "string"},
-    "TAGS": {"key": "tags", "type": "string"}
+    "TAGS": {"key": "tags", "type": "string"},
+    "TOPRANK": {"key": "top_rank", "type": "string"},
+    "TOPCOMBO": {"key": "top_combo", "type": "float"},
+    "TOPACC": {"key": "top_accuracy", "type": "float"},
+    "PASSES": {"key": "passes", "type": "float"}
 }
